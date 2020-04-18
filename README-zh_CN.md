@@ -1,12 +1,15 @@
-# Babel preprocessor directives
+<h1 align="center">Preprocessor Directives</h1>
+<div align="center">
+一个 <a href="https://github.com/babel/babel" target="_blank">Babel</a> 插件，用于转换预处理器指令
 
-[![Version][version-badge]][npm]
-[![Node][node-badge]][node]
-![Downloads][download-badge]
-[![License][license-badge]][license]
-[![Build Status][travis-badge]][travis]
+![npm](https://img.shields.io/npm/v/babel-plugin-preprocessor)
+![Node](https://img.shields.io/node/v/babel-plugin-preprocessor)
+![Downloads](https://img.shields.io/npm/dy/babel-plugin-preprocessor)
+![License](https://img.shields.io/npm/l/babel-plugin-preprocessor)
+[![Build Status](https://travis-ci.com/kaysonwu/babel-plugin-preprocessor.svg?branch=master)](https://travis-ci.com/kaysonwu/babel-plugin-preprocessor)
 
-用于转换预处理器指令
+</div>
+
 
 [English](#README.md) | 中文
 

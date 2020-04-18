@@ -1,12 +1,14 @@
-# Babel preprocessor directives
+<h1 align="center">Preprocessor Directives</h1>
+<div align="center">
+An babel plugin for transform preprocessor directives 
 
-[![Version][version-badge]][npm]
-[![Node][node-badge]][node]
-![Downloads][download-badge]
-[![License][license-badge]][license]
-[![Build Status][travis-badge]][travis]
+![npm](https://img.shields.io/npm/v/babel-plugin-preprocessor)
+![Node](https://img.shields.io/node/v/babel-plugin-preprocessor)
+![Downloads](https://img.shields.io/npm/dy/babel-plugin-preprocessor)
+![License](https://img.shields.io/npm/l/babel-plugin-preprocessor)
+[![Build Status](https://travis-ci.com/kaysonwu/babel-plugin-preprocessor.svg?branch=master)](https://travis-ci.com/kaysonwu/babel-plugin-preprocessor)
 
-Used to transform preprocessor directives
+</div>
 
 English | [中文](#README_zh_CN.md) 
 
