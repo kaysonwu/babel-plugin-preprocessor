@@ -2,12 +2,29 @@
   "name": "babel-plugin-preprocessor",
   "version": "0.0.1",
   "description": "Used to transform preprocessor directives",
-  "keywords": ["babel-plugin", "preprocessor", "directives"],
-  "main": "index.js",
+  "keywords": [
+    "babel-plugin",
+    "preprocessor",
+    "directives"
+  ],
+  "main": "lib/index.js",
   "repository": "https://github.com/kaysonwu/babel-plugin-preprocessor.git",
   "author": "kaysonwu <kayson@huida.cn>",
   "license": "MIT",
   "scripts": {
-    
+    "build": "babel src --out-dir lib --extensions \".ts\"",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/preset-typescript": "^7.0.0",
+    "@types/babel__core": "^7.0.0",
+    "@types/jest": "^25.1.0",
+    "@types/node": "^12.0.0",
+    "babel-jest": "^25.1.0",
+    "jest": "^25.1.0"
   }
 }
