@@ -90,6 +90,18 @@ describe('Babel Preprocessor Plugin', () => {
     expect(result).not.toMatch(/unknown/);
   });
 
+  test('with complex conditions', () => {
+    const result = testPlugin(`
+      // #if (IE > 8 && IE < 12) || UA.startsWith('Chrome')
+      console.log('Support HTML5');
+      // #else
+      console.log('HTML5 is not supported');
+      // #endif
+    `, { symbols: { IE: 8, UA: 'Chrome' } });
+
+    expect(result).not.toMatch(/supported/);
+  });
+
   test('without directives', () => {
     const result = testPlugin(`
       /* #if BROWSER */
