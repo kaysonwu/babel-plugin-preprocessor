@@ -12,7 +12,7 @@ An babel plugin for transform preprocessor directives
 
 </div>
 
-English | [中文](README_zh_CN.md) 
+English | [中文](README-zh_CN.md) 
 
 ## Installation
 
