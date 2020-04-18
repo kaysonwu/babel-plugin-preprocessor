@@ -1,6 +1,8 @@
 <h1 align="center">Preprocessor Directives</h1>
 <div align="center">
-An babel plugin for transform preprocessor directives <br />
+An babel plugin for transform preprocessor directives 
+<br />
+<br />
 
 ![npm](https://img.shields.io/npm/v/babel-plugin-preprocessor)
 ![Node](https://img.shields.io/node/v/babel-plugin-preprocessor)
@@ -10,7 +12,7 @@ An babel plugin for transform preprocessor directives <br />
 
 </div>
 
-English | [中文](#README_zh_CN.md) 
+English | [中文](README_zh_CN.md) 
 
 ## Installation
 
