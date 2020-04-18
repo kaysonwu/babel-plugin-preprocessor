@@ -9,7 +9,6 @@ An babel plugin for transform preprocessor directives
 ![Downloads](https://img.shields.io/npm/dy/babel-plugin-preprocessor)
 ![License](https://img.shields.io/npm/l/babel-plugin-preprocessor)
 [![Build Status](https://travis-ci.com/kaysonwu/babel-plugin-preprocessor.svg?branch=master)](https://travis-ci.com/kaysonwu/babel-plugin-preprocessor)
-
 </div>
 
 English | [中文](README-zh_CN.md) 
@@ -35,8 +34,8 @@ interface PluginOptions {
 }
 ```
 
-- `symbols`: For [built-in directives](#Build-in-Directives) parameters
-- `directives`: For [custom directives](#Custom-Directives)
+- `symbols`: For [built-in directives](#build-in-directives) parameters
+- `directives`: For [custom directives](#custom-directives)
 
 Set plugin options in babel configuration file:
 
@@ -56,7 +55,7 @@ Set plugin options in babel configuration file:
 
 ### Build-in Directives
 
-Before using `#if` / `#else` / `#elseif` (alias: `#elif`) / `#endif` build-in Directives, you need to configure the [symbols](#Options) option in the babel configuration file.
+Before using `#if` / `#else` / `#elseif` (alias: `#elif`) / `#endif` build-in Directives, you need to configure the [symbols](#options) option in the babel configuration file.
 
 ```js
 // #if BROWSER
@@ -69,7 +68,7 @@ If `BROWSER` is truthy, `console.log ('It\\'s unknown');` will be deleted and vi
 
 #### Complex use case
 
-Use the [symbols](#Options) parameter like variable：
+Use the [symbols](#options) parameter like variable：
 
 ```json
 {
@@ -89,7 +88,7 @@ console.log('HTML5 is not supported'); // This line will be deleted
 
 ### Custom Directives
 
-By configuring the [directives](#Options) option to implement custom directives：
+By configuring the [directives](#options) option to implement custom directives：
 
 ```js
 // #debug
@@ -117,4 +116,18 @@ console.log('It\\'s unknown');
 // #!endifWW
 ```
 
-If you use its `#!debug` directive, please configure [directives](#Options) option, If you also use its `verbose` option, then you need to configure the [symbols](#Options) option according to the usage.
+If you use its `#!debug` directive, please configure [directives](#options) option, If you also use its `verbose` option, then you need to configure the [symbols](#options) option according to the usage.
+
+### Typescript
+
+To suppress the error, a tricky way is simply adding `// @ts-ignore` before all declarations:
+
+```ts
+// #if ENV = 'develop'
+// @ts-ignore
+const foo = 1;
+// #else
+// @ts-ignore
+const foo = -1;
+// #endif
+```

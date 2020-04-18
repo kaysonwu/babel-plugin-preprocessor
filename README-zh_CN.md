@@ -9,9 +9,7 @@
 ![Downloads](https://img.shields.io/npm/dy/babel-plugin-preprocessor)
 ![License](https://img.shields.io/npm/l/babel-plugin-preprocessor)
 [![Build Status](https://travis-ci.com/kaysonwu/babel-plugin-preprocessor.svg?branch=master)](https://travis-ci.com/kaysonwu/babel-plugin-preprocessor)
-
 </div>
-
 
 [English](README.md) | 中文
 
@@ -57,7 +55,7 @@ interface PluginOptions {
 
 ### 内置指令
 
-使用 `#if` / `#else` / `#elseif` (alias: `#elif`) / `#endif` 等内置指令前, 你需要先配置 [symbols](#Options) 选项
+使用 `#if` / `#else` / `#elseif` (alias: `#elif`) / `#endif` 等内置指令前, 你需要先配置 [symbols](#选项) 选项
 
 ```js
 // #if BROWSER
@@ -70,7 +68,7 @@ console.log('It\\'s unknown');
 
 #### 复杂用例
 
-像变量一样去使用 [symbols](#Options) 的参数：
+像变量一样去使用 [symbols](#选项) 的参数：
 
 ```json
 {
@@ -90,7 +88,7 @@ console.log('HTML5 is not supported'); // This line will be deleted
 
 ### 自定义指令
 
-通过配置 [directives](#Options) 选项实现自定义指令：
+通过配置 [directives](#选项) 选项实现自定义指令：
 
 ```js
 // #debug
@@ -118,4 +116,18 @@ console.log('It\\'s unknown');
 // #!endifWW
 ```
 
-如果你使用了它的 `#!debug` 指令, 请配置 [directives](#Options) 选项，如果你还使用了它的 `verbose` 选项, 你需要根据使用情况配置 [symbols](#Options) 选项。
+如果你使用了它的 `#!debug` 指令, 请配置 [directives](#选项) 选项，如果你还使用了它的 `verbose` 选项, 你需要根据使用情况配置 [symbols](#选项) 选项。
+
+### Typescript
+
+为了抑制错误，最简单的方式是在所有声明前使用 `// @ts-ignore`
+
+```ts
+// #if ENV = 'develop'
+// @ts-ignore
+const foo = 1;
+// #else
+// @ts-ignore
+const foo = -1;
+// #endif
+```
