@@ -14,16 +14,13 @@ interface Range {
 }
 
 const IF = ['if', 'elif', 'elseif'];
-const VAR_NAME = /^[a-zA-Z_$][a-zA-Z0-9_$]+$/;
 
-function evalDirective(test: string[], symbols: Record<string, any>) {
-  if (symbols) {
-    try {
-      const code = test.map(e => (VAR_NAME.test(e) ? symbols[e] : e)).join(' ');
-      return runInNewContext(`(function(){ return ${code}; })()`);
-    } catch { /* ignore error */ }
-  }
- 
+function evalDirective(code: string, symbols: Record<string, any>) {
+  try {
+    const context = { ...symbols };
+    return runInNewContext(`(function(){ return (${code}); })()`, context);
+  } catch { /* ignore error */ }
+  
   return false;
 }
 
@@ -38,12 +35,12 @@ export default function() {
 
     if (!directive.startsWith('#')) return false;
 
-    const test = directive.split(/\s+/);
     // For compatibility with webpack-preprocessor-loader.
     // Support #!if、#if、#!IF、#IF
-    const key = test.shift()!.replace(/^#!?/g, '').toLowerCase();
+    const code = directive.split(/\s+/);
+    const key = code.shift()!.replace(/^#!?/g, '').toLowerCase();
 
-    return { key, test };
+    return { key, code: code.join(' ') };
   }
 
   function getFalsyRanges(comments: Comment[], options: PluginOptions) {
@@ -57,14 +54,14 @@ export default function() {
 
       if (!directive) continue;
 
-      let { key, test } = directive;
+      let { key, code } = directive;
 
       if (has(directives, key)) {
         if (!directives[key]) {
           ranges.push({ start, end: start + 1 });
         }
       } else if (IF.includes(key)) {
-        prev = evalDirective(test, symbols) ? false : start;
+        prev = evalDirective(code, symbols) ? false : start;
       } else if (key === 'else' || key === 'endif') {
         if (prev) {
           ranges.push({ start: prev, end: start });
