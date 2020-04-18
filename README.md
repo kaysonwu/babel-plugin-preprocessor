@@ -63,6 +63,26 @@ console.log('It\\'s unknown');
 ```
 If `BROWSER` is truthy, `console.log ('It\\'s unknown');` will be deleted and vice versa.
 
+#### Complex use case
+
+Use the [symbols](#Options) parameter like variable：
+
+```json
+{
+  "plugins": [
+    ["preprocessor", { "symbols": { "IE": 8, "UA": "Chrome" } }]
+  ]
+}
+```
+
+```js
+// #if (IE > 8 && IE < 12) || UA.startsWith('Chrome')
+console.log('Support HTML5');
+// #else
+console.log('HTML5 is not supported'); // This line will be deleted
+// #endif
+```
+
 ### Custom Directives
 
 By configuring the [directives](#Options) option to implement custom directives：

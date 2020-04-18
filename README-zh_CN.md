@@ -63,6 +63,26 @@ console.log('It\\'s unknown');
 ```
 如果 `BROWSER` 是真的, `console.log ('It\\'s unknown');` 将被删除，反之亦然
 
+#### 复杂用例
+
+像变量一样去使用 [symbols](#Options) 的参数：
+
+```json
+{
+  "plugins": [
+    ["preprocessor", { "symbols": { "IE": 8, "UA": "Chrome" } }]
+  ]
+}
+```
+
+```js
+// #if (IE > 8 && IE < 12) || UA.startsWith('Chrome')
+console.log('Support HTML5');
+// #else
+console.log('HTML5 is not supported'); // This line will be deleted
+// #endif
+```
+
 ### 自定义指令
 
 通过配置 [directives](#Options) 选项实现自定义指令：
