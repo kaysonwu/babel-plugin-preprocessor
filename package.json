@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-preprocessor",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Used to transform preprocessor directives",
   "keywords": [
     "babel-plugin",
