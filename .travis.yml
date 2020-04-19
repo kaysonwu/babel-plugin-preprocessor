@@ -3,8 +3,8 @@ node_js:
   - "8"
 deploy:
   provider: npm
-  emial: "kayson@huida.cn"
-  api_key:
+  email: "kayson@huida.cn"
+  api_token:
     secure: "eMhPQ6l8Qkez2Zp1e63czTK9OczEo5P9R4xDap3iRCBaSp6rcIl4oBwPsyYRevh5BkEdLvfWcXuFzMpUXnCGNiuuFoqze/6jxn8FAdw10D9uloMreg+Lms6tcHiFEhUbgXlckYYkZEdFHHgGnWqJsBwQiZiPvByCXDtTBKPIK6RftFaFk1zBIj1S3ZRC7qWPiqpciHJXvQkFt7lglrQ7oPdPZ3eq3XJFjK40Sjh09PT0SuNmt8XUoQw8YoTOelV8DDZx2QgpEuWtaeo8pkoGVUt+QpOs45IyXnUnPGiTJf+ggS7tAE9HWSUoXE/gzuGm2Ov1Sme0/TsKKfZQCVk85brq6hqdh3fcc8KyM4Y21jmyjQwgpqbsO6bUjbYAh6taFjj4bVqbfOSe8FjNlFRDKoF5NM1vispPqW1LdIcTe32Mf0xmCYlJNQ176dCjHnEn++Vpp3r8Zch630ncOwvoy47vTFsNGB5NFkTmKXEX6fpzKWPp4Yj5aOkcAsKV/3ThgwPcQcqXkQ0/C45w7fm7KBB/grro4i/ez2gwc6y2aQ6mU55ovvsyIa3Ricy3OQ3VL7rLCzOhuTHRWQGdzzvvKQrD3g4kxd1gDoMbv43SMmDS6+5cEdOKkKZu5E1N6o8W2PWmETv9584sNdppRboxlvqsDWLRU2xpSl619C8ipyI="
   on:
     branch: master
