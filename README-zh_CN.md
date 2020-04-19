@@ -1,17 +1,26 @@
 <h1 align="center">Preprocessor Directives</h1>
 <div align="center">
 一个 <a href="https://github.com/babel/babel" target="_blank">Babel</a> 插件，用于转换预处理器指令
-<br />
-<br />
+<br /><br />
 
 ![npm](https://img.shields.io/npm/v/babel-plugin-preprocessor)
 ![Node](https://img.shields.io/node/v/babel-plugin-preprocessor)
 ![Downloads](https://img.shields.io/npm/dy/babel-plugin-preprocessor)
 ![License](https://img.shields.io/npm/l/babel-plugin-preprocessor)
 [![Build Status](https://travis-ci.com/kaysonwu/babel-plugin-preprocessor.svg?branch=master)](https://travis-ci.com/kaysonwu/babel-plugin-preprocessor)
+<br /><br />
+[English](README.md) | 中文
 </div>
 
-[English](README.md) | 中文
+- [安装](#安装)
+- [选项](#选项)
+- [使用](#使用)
+  - [内置指令](#内置指令)
+  - [复杂用例](#复杂用例)
+  - [自定义指令](#自定义指令)
+  - [兼容 webpack-preprocessor-loader](#兼容-webpack-preprocessor-loader)
+  - [Typescript](#typescript)
+  - [JSX](#jsx)
 
 ## 安装
 
@@ -131,3 +140,73 @@ const foo = 1;
 const foo = -1;
 // #endif
 ```
+
+### JSX
+
+从 `0.0.2` 版本开始，就完全支持JSX指令：
+
+```jsx
+import React from 'react';
+import ErrorBoundary from './boundary';
+
+export default () => {
+  return (
+    /* #if WEB */
+    <ErrorBoundary fallback={() => <div>Fallback</div>}>
+    {/* #endif */}
+      <div>
+        {/* #debug */}
+        <span>This line should be deleted</span>
+        Do something
+      </div>
+    {/* #if WEB */} 
+    </ErrorBoundary>
+    /* #endif */  
+  );
+}
+```
+
+如果一个 `JSX` 元素具有关闭标签，那么，可以省略关闭标签的指令：
+
+```jsx
+import React from 'react';
+import ErrorBoundary from './boundary';
+
+export default () => {
+  return (
+    /* #if WEB */
+    <ErrorBoundary fallback={() => <div>Fallback</div>}>
+    {/* #endif */}
+      <div>
+        {/* #debug */}
+        <span>This line should be deleted</span>
+        Do something
+      </div>
+    </ErrorBoundary>
+  );
+}
+```
+
+但是, 我建议你保留它，以兼容 [webpack-preprocessor-loader](https://github.com/afterwind-io/preprocessor-loader)
+
+使用 `JSX` 时要还要注意元素的包装，否则会出现一些意想不到的结果：
+
+```jsx
+import React from 'react';
+import ErrorBoundary from './boundary';
+
+export default () => {
+  return (
+    /* #if WEB */
+    <ErrorBoundary fallback={() => <div>Fallback</div>}>
+    {/* #endif */}
+      {/* #debug */}
+      <span>This line should be deleted</span>
+      Do something
+    {/* #if WEB */} 
+    </ErrorBoundary>
+    /* #endif */  
+  );
+}
+```
+如果 `WEB` 为 false 且 `debug` 为 true, 那么 `Do something` 行会被丢掉

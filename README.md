@@ -1,17 +1,26 @@
 <h1 align="center">Preprocessor Directives</h1>
 <div align="center">
 An babel plugin for transform preprocessor directives 
-<br />
-<br />
+<br /><br />
 
 ![npm](https://img.shields.io/npm/v/babel-plugin-preprocessor)
 ![Node](https://img.shields.io/node/v/babel-plugin-preprocessor)
 ![Downloads](https://img.shields.io/npm/dy/babel-plugin-preprocessor)
 ![License](https://img.shields.io/npm/l/babel-plugin-preprocessor)
 [![Build Status](https://travis-ci.com/kaysonwu/babel-plugin-preprocessor.svg?branch=master)](https://travis-ci.com/kaysonwu/babel-plugin-preprocessor)
+<br /><br />
+English | [中文](README-zh_CN.md) 
 </div>
 
-English | [中文](README-zh_CN.md) 
+- [Installation](#installation)
+- [Options](#options)
+- [Usage](#usage)
+  - [Build-in Directives](#build-in-directives)
+  - [Complex use case](#complex-use-case)
+  - [Custom Directives](#custom-directives)
+  - [Compatible webpack-preprocessor-loader](#compatible-webpack-preprocessor-loader)
+  - [Typescript](#typescript)
+  - [JSX](#jsx)
 
 ## Installation
 
@@ -131,3 +140,73 @@ const foo = 1;
 const foo = -1;
 // #endif
 ```
+
+### JSX
+
+Since version `0.0.2`, JSX directives have been fully supported：
+
+```jsx
+import React from 'react';
+import ErrorBoundary from './boundary';
+
+export default () => {
+  return (
+    /* #if WEB */
+    <ErrorBoundary fallback={() => <div>Fallback</div>}>
+    {/* #endif */}
+      <div>
+        {/* #debug */}
+        <span>This line should be deleted</span>
+        Do something
+      </div>
+    {/* #if WEB */} 
+    </ErrorBoundary>
+    /* #endif */  
+  );
+}
+```
+
+If a JSX element has a close tag, the directive to close the tag can be omitted：
+
+```jsx
+import React from 'react';
+import ErrorBoundary from './boundary';
+
+export default () => {
+  return (
+    /* #if WEB */
+    <ErrorBoundary fallback={() => <div>Fallback</div>}>
+    {/* #endif */}
+      <div>
+        {/* #debug */}
+        <span>This line should be deleted</span>
+        Do something
+      </div>
+    </ErrorBoundary>
+  );
+}
+```
+
+However, I suggest you keep it so that it is compatible with [webpack-preprocessor-loader](https://github.com/afterwind-io/preprocessor-loader)
+
+Pay attention to the wrapping of elements when using JSX, otherwise there will be some unexpected results：
+
+```jsx
+import React from 'react';
+import ErrorBoundary from './boundary';
+
+export default () => {
+  return (
+    /* #if WEB */
+    <ErrorBoundary fallback={() => <div>Fallback</div>}>
+    {/* #endif */}
+      {/* #debug */}
+      <span>This line should be deleted</span>
+      Do something
+    {/* #if WEB */} 
+    </ErrorBoundary>
+    /* #endif */  
+  );
+}
+```
+If `WEB` is false and `debug` is true, then `Do something` line will be discarded.
