@@ -1,7 +1,7 @@
 import { runInNewContext } from 'vm';
 import { PluginObj } from '@babel/core';
 import { NodePath } from '@babel/traverse';
-import { Program, File, Comment } from '@babel/types';
+import { Program, File, Comment, JSXElement } from '@babel/types';
 
 interface PluginOptions {
   symbols: Record<string, any>;
@@ -82,10 +82,33 @@ export default function() {
     return loc && ranges.some(r => (loc.start.line >= r.start && loc.end.line <= r.end));
   }
 
+  function isFalsyJSXPath(path: NodePath<JSXElement>, ranges: Range[]) {
+    return isFalsyPath(path.get('openingElement') as NodePath, ranges)
+      || isFalsyPath(path.get('closingElement') as NodePath, ranges);
+  }
+
+  function handleJsxDirective(path: NodePath<JSXElement>, ranges: Range[]) {
+    if (!isFalsyJSXPath(path, ranges)) return;
+
+    const child = path.get('children').find(
+      child => child.isJSXElement() && !isFalsyPath(child as any, ranges)
+    ) as NodePath;
+
+    if (child) {
+      path.replaceWith(child);
+    } else {
+      path.remove();
+    }
+  }
+
   function transform(path: NodePath<Program>, options: any) {
     const ranges = getFalsyRanges((path.parent as File).comments, options);
     path.traverse({
       enter(path) {
+        if (path.isJSXElement()) {
+          return handleJsxDirective(path as any, ranges);
+        } 
+
         if (isFalsyPath(path, ranges)) {
           path.remove();
         }
