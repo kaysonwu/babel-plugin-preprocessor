@@ -39,21 +39,26 @@ describe('Babel Preprocessor Plugin', () => {
   test('via JSX comment', () => {
     const result = testPlugin(`
       import React from 'react';
+      import ErrorBoundary from './boundary';
 
       export default () => {
         return (
-          <div>
-            {/* #if BROWSER */}
-            <a>This is browser</a>
-            {/* #else */}
-            <a>It's unknown</a>
-            {/* #endif */}
-          </div>
+          /* #if WEB */
+          <ErrorBoundary fallback={() => <div>Fallback</div>}>
+          {/* #endif */}
+            <div>
+              {/* #debug */}
+              <span>This line should be deleted</span>
+              Do something
+            </div>
+          {/* #if WEB */} 
+          </ErrorBoundary>
+          /* #endif */  
         );
       }
-    `, { symbols: { BROWSER: true } });
+    `, { symbols: { WEB: false }, directives: { debug: false } });
 
-    expect(result).not.toMatch(/unknown/);   
+    expect(result).not.toMatch(/(fallback|should)/);   
   });
 
   test('use custom directives', () => {
