@@ -14,6 +14,9 @@
   "engines": {
     "node": ">=8"
   },
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "build": "babel src --out-dir lib --extensions \".ts\"",
     "test": "jest"
