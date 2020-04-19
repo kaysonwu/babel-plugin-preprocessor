@@ -78,7 +78,8 @@ export default function() {
   }
 
   function isFalsyPath(path: NodePath, ranges: Range[]) {
-    const { loc } = path.node;
+    // JSX some node are null
+    const { loc } = path.node || {};
     return loc && ranges.some(r => (loc.start.line >= r.start && loc.end.line <= r.end));
   }
 
