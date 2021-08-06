@@ -46,33 +46,63 @@ export default function() {
   function getFalsyRanges(comments: Comment[], options: PluginOptions) {
     const { directives, symbols } = options;
     const ranges: Range[] = [];
-    let prev: number | false = false;
 
-    for (let comment of comments) {
-      let { value, loc: { start: { line: start } } } = comment;
-      let directive = parseDirective(value);
-
-      if (!directive) continue;
-
-      let { key, code } = directive;
-
-      if (has(directives, key)) {
-        if (!directives[key]) {
-          ranges.push({ start, end: start + 1 });
+    const scanDirective = (start: number, parent: string | null, retained: boolean, previous: number) => {
+      let i: number;
+      for (i = start; i < comments.length; i++) {
+        const { value, loc: { start: { line } } } = comments[i];
+        const directive = parseDirective(value);
+  
+        if (directive === false) {
+          continue;
         }
-      } else if (IF.includes(key)) {
-        prev = evalDirective(code, symbols) ? false : start;
-      } else if (key === 'else' || key === 'endif') {
-        if (prev) {
-          ranges.push({ start: prev, end: start });
-          prev = false;
-        } else if (key === 'else') {
-          prev = start;
+
+        const { key, code } = directive;
+        
+        // If code blocks are retained, we test sub code blocks.
+        if (retained) {
+
+          if (has(directives, key)) {
+            if (!directives[key]) {
+              ranges.push({ start: line, end: line + 1 });
+            }
+          } else if (parent === 'if' && key !== 'endif') {
+            // Skip: elseif、else
+            i = scanDirective(i + 1, key, key === 'if' ? evalDirective(code, symbols) : false, line);
+          }
+
+        } else if (key === 'if') {
+          i = scanDirective(i + 1, null, false, 0); 
+        } else if (parent === 'if') {
+
+          if (key === 'elif' || key === 'elseif') {
+            i = scanDirective(i + 1, 'if', evalDirective(code, symbols), line); 
+          } else if (key === 'else' || key === 'endif') {
+            // Reset status.
+            retained = true;
+          } else {
+            continue;
+          }
+
+          // if - elseif、if - else、if - endif
+          ranges.push({ start: previous, end: line });
+
+        } else if (key === 'endif') {
+
+          // Skip if block
+          if (parent === null) {
+            return i;
+          }
+
+          // if - endif、elseif - endif、else - endif
+          ranges.push({ start: previous, end: line });
         }
-      } else {
-        continue;
       }
-    }
+
+      return i;
+    };
+
+    scanDirective(0, 'if', true, 0);
 
     return ranges;
   }

@@ -53,7 +53,7 @@ Set plugin options in babel configuration file:
   "plugins": [
     ...
     ["preprocessor", {
-      "symbols": { "BROWSER": true },
+      "symbols": { "IS_BROWSER": true },
       "directives": { "DEBUG": true }
     }]
   ]
@@ -67,13 +67,13 @@ Set plugin options in babel configuration file:
 Before using `#if` / `#else` / `#elseif` (alias: `#elif`) / `#endif` build-in Directives, you need to configure the [symbols](#options) option in the babel configuration file.
 
 ```js
-// #if BROWSER
+// #if IS_BROWSER
 console.log('This is browser');
 // #else
 console.log('It\\'s unknown');
 // #endif
 ```
-If `BROWSER` is truthy, `console.log ('It\\'s unknown');` will be deleted and vice versa.
+If `IS_BROWSER` is truthy, `console.log ('It\\'s unknown');` will be deleted and vice versa.
 
 #### Complex use case
 
@@ -118,7 +118,7 @@ const a = ''; // This line will be retained
 This plugin is inspired by [webpack-preprocessor-loader](https://github.com/afterwind-io/preprocessor-loader), Therefore, you can safely use its built-in directives:
 
 ```js
-// #!if BROWSER
+// #!if IS_BROWSER
 console.log('This is browser');
 // #!else
 console.log('It\\'s unknown');
@@ -151,7 +151,7 @@ import ErrorBoundary from './boundary';
 
 export default () => {
   return (
-    /* #if WEB */
+    /* #if IS_BROWSER */
     <ErrorBoundary fallback={() => <div>Fallback</div>}>
     {/* #endif */}
       <div>
@@ -159,7 +159,7 @@ export default () => {
         <span>This line should be deleted</span>
         Do something
       </div>
-    {/* #if WEB */} 
+    {/* #if IS_BROWSER */} 
     </ErrorBoundary>
     /* #endif */  
   );
@@ -174,7 +174,7 @@ import ErrorBoundary from './boundary';
 
 export default () => {
   return (
-    /* #if WEB */
+    /* #if IS_BROWSER */
     <ErrorBoundary fallback={() => <div>Fallback</div>}>
     {/* #endif */}
       <div>
@@ -197,16 +197,16 @@ import ErrorBoundary from './boundary';
 
 export default () => {
   return (
-    /* #if WEB */
+    /* #if IS_BROWSER */
     <ErrorBoundary fallback={() => <div>Fallback</div>}>
     {/* #endif */}
       {/* #debug */}
       <span>This line should be deleted</span>
       Do something
-    {/* #if WEB */} 
+    {/* #if IS_BROWSER */} 
     </ErrorBoundary>
     /* #endif */  
   );
 }
 ```
-If `WEB` is false and `debug` is true, then `Do something` line will be discarded.
+If `IS_BROWSER` is false and `debug` is true, then `Do something` line will be discarded.

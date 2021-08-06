@@ -7,31 +7,31 @@ const testPlugin = (code: string, options: object) => {
     plugins:[[plugin, options]],
     configFile: false,
   });
-
+  
   return result!.code;
 }
 
 describe('Babel Preprocessor Plugin', () => {
   test('via single-Line comment', () => {
     const result = testPlugin(`
-      // #if BROWSER
+      // #if IS_BROWSER
       console.log('This is browser');
       // #else
       console.log('It\\'s unknown');
       // #endif
-    `, { symbols: { BROWSER: true } });
+    `, { symbols: { IS_BROWSER: true } });
 
     expect(result).not.toMatch(/unknown/);
   });
 
   test('via multi-line comment', () => {
     const result = testPlugin(`
-      /* #if BROWSER */
+      /* #if IS_BROWSER */
       console.log('This is browser');
       /* #else */
       console.log('It\\'s unknown');
       /* #endif */
-    `, { symbols: { BROWSER: true } });
+    `, { symbols: { IS_BROWSER: true } });
 
     expect(result).not.toMatch(/unknown/);
   });
@@ -43,7 +43,7 @@ describe('Babel Preprocessor Plugin', () => {
 
       export default () => {
         return (
-          /* #if WEB */
+          /* #if IS_BROWSER */
           <ErrorBoundary fallback={() => <div>Fallback</div>}>
           {/* #endif */}
             <div>
@@ -51,12 +51,12 @@ describe('Babel Preprocessor Plugin', () => {
               <span>This line should be deleted</span>
               Do something
             </div>
-          {/* #if WEB */} 
+          {/* #if IS_BROWSER */} 
           </ErrorBoundary>
           /* #endif */  
         );
       }
-    `, { symbols: { WEB: false }, directives: { debug: false } });
+    `, { symbols: { IS_BROWSER: false }, directives: { debug: false } });
 
     expect(result).not.toMatch(/(fallback|should)/);   
   });
@@ -85,12 +85,12 @@ describe('Babel Preprocessor Plugin', () => {
 
   test('should be webpack-preprocessor-loader compatible', () => {
     const result = testPlugin(`
-      // #!if BROWSER
+      // #!if IS_BROWSER
       console.log('This is browser');
       // #!else
       console.log('It\\'s unknown');
       // #!endif
-    `, { symbols: { BROWSER: true } });
+    `, { symbols: { IS_BROWSER: true } });
 
     expect(result).not.toMatch(/unknown/);
   });
@@ -109,16 +109,69 @@ describe('Babel Preprocessor Plugin', () => {
 
   test('without directives', () => {
     const result = testPlugin(`
-      /* #if BROWSER */
+      /* #if IS_BROWSER */
       console.log('This is browser');
       /* #endif */
       // #debug
       console.log('debug message')
       // #warning
       console.warning('warning message')
-    `, { symbols: { BROWSER: false }, directives: { debug: false, warning: true } });
+    `, { symbols: { IS_BROWSER: false }, directives: { debug: false, warning: true } });
 
     expect(result).not.toMatch(/BROWSER/);
     expect(result).not.toMatch(/#(debug|warning)/);
+  });
+
+  test('Allow nested conditions', () => {
+    let result: string;
+    const code = `
+      import React from 'react';
+      import { hydrate, render } from 'react-dom';
+      import { BrowserRouter } from 'react-router-dom';
+      import { loadableReady } from '@loadable/component';
+      import Application from '@/components/application';
+
+      // #if target === 'browser'
+      const container = document.getElementById('app');
+      const element = (
+        <BrowserRouter>
+          <Application />
+        </BrowserRouter>
+      );
+      
+      // #if SSR
+      loadableReady(() => {
+        hydrate(element, container);
+      });
+      // #else
+      render(element, container);
+      // #endif
+      
+      // #elif target === 'node'
+      export default Application;
+      // #else
+      console.error('Invalid target');
+      // #endif
+    `;
+
+    result = testPlugin(code, { symbols: { target: 'browser', SSR: true } });
+
+    expect(result).toMatch(/hydrate\(/);
+    expect(result).not.toMatch(/((render|error)\(|export default)/);
+ 
+    result = testPlugin(code, { symbols: { target: 'browser', SSR: false } });
+
+    expect(result).not.toMatch(/((hydrate|error)\(|export default)/);
+    expect(result).toMatch(/render\(/);
+
+    result = testPlugin(code, { symbols: { target: 'node', SSR: true } });
+    
+    expect(result).not.toMatch(/(hydrate|render|error)\(/);
+    expect(result).toMatch(/export default/);
+
+    result = testPlugin(code, { symbols: { target: 'unknown', SSR: false } });
+
+    expect(result).not.toMatch(/((hydrate|render)\(|export default)/);
+    expect(result).toMatch(/error\(/);
   });
 });

@@ -53,7 +53,7 @@ interface PluginOptions {
   "plugins": [
     ...
     ["preprocessor", {
-      "symbols": { "BROWSER": true },
+      "symbols": { "IS_BROWSER": true },
       "directives": { "DEBUG": true }
     }]
   ]
@@ -67,13 +67,13 @@ interface PluginOptions {
 使用 `#if` / `#else` / `#elseif` (alias: `#elif`) / `#endif` 等内置指令前, 你需要先配置 [symbols](#选项) 选项
 
 ```js
-// #if BROWSER
+// #if IS_BROWSER
 console.log('This is browser');
 // #else
 console.log('It\\'s unknown');
 // #endif
 ```
-如果 `BROWSER` 是真的, `console.log ('It\\'s unknown');` 将被删除，反之亦然
+如果 `IS_BROWSER` 是真的, `console.log ('It\\'s unknown');` 将被删除，反之亦然
 
 #### 复杂用例
 
@@ -118,7 +118,7 @@ const a = ''; // 这一行将被保留
 这个插件的灵感来源于 [webpack-preprocessor-loader](https://github.com/afterwind-io/preprocessor-loader), 因此, 你可以放心的使用它的内置指令:
 
 ```js
-// #!if BROWSER
+// #!if IS_BROWSER
 console.log('This is browser');
 // #!else
 console.log('It\\'s unknown');
@@ -151,7 +151,7 @@ import ErrorBoundary from './boundary';
 
 export default () => {
   return (
-    /* #if WEB */
+    /* #if IS_BROWSER */
     <ErrorBoundary fallback={() => <div>Fallback</div>}>
     {/* #endif */}
       <div>
@@ -159,7 +159,7 @@ export default () => {
         <span>This line should be deleted</span>
         Do something
       </div>
-    {/* #if WEB */} 
+    {/* #if IS_BROWSER */} 
     </ErrorBoundary>
     /* #endif */  
   );
@@ -174,7 +174,7 @@ import ErrorBoundary from './boundary';
 
 export default () => {
   return (
-    /* #if WEB */
+    /* #if IS_BROWSER */
     <ErrorBoundary fallback={() => <div>Fallback</div>}>
     {/* #endif */}
       <div>
@@ -197,16 +197,16 @@ import ErrorBoundary from './boundary';
 
 export default () => {
   return (
-    /* #if WEB */
+    /* #if IS_BROWSER */
     <ErrorBoundary fallback={() => <div>Fallback</div>}>
     {/* #endif */}
       {/* #debug */}
       <span>This line should be deleted</span>
       Do something
-    {/* #if WEB */} 
+    {/* #if IS_BROWSER */} 
     </ErrorBoundary>
     /* #endif */  
   );
 }
 ```
-如果 `WEB` 为 false 且 `debug` 为 true, 那么 `Do something` 行会被丢掉
+如果 `IS_BROWSER` 为 false 且 `debug` 为 true, 那么 `Do something` 行会被丢掉
