@@ -4,8 +4,10 @@ import { NodePath } from '@babel/traverse';
 import { Program, File, Comment, JSXElement } from '@babel/types';
 
 interface PluginOptions {
-  symbols: Record<string, any>;
-  directives: Record<string, boolean>;
+  /** 符号表 */
+  symbols?: Record<string, any>;
+  /** 自定义指令 */
+  directives?: Record<string, boolean>;
 }
 
 interface Range {
@@ -13,23 +15,33 @@ interface Range {
   end: number;
 }
 
-const IF = ['if', 'elif', 'elseif'];
+interface Directive {
+  /** 指令关键字 */
+  key: string;
+  /** 所在行号 */
+  line: number;
+  /** 是否通过 */
+  passed: boolean | null;
+  /** 指令层级 */
+  level: number;
+}
 
 function evalDirective(code: string, symbols: Record<string, any>) {
   try {
     const context = { ...symbols };
     return runInNewContext(`(function(){ return (${code}); })()`, context);
-  } catch { /* ignore error */ }
-  
+  } catch {
+    /* ignore error */
+  }
+
   return false;
 }
 
-function has(object: any, key: string | number | symbol) {
-  return object && Object.prototype.hasOwnProperty.call(object, key);
+function has(object: Record<string, unknown>, key: string) {
+  return Object.prototype.hasOwnProperty.call(object, key);
 }
 
-export default function() {
-
+export default function () {
   function parseDirective(value: string) {
     const directive = value.trim();
 
@@ -44,86 +56,114 @@ export default function() {
   }
 
   function getFalsyRanges(comments: Comment[], options: PluginOptions) {
-    const { directives, symbols } = options;
+    const { directives = {}, symbols = {} } = options;
     const ranges: Range[] = [];
+    const tokens: Directive[] = [];
 
-    const scanDirective = (start: number, parent: string | null, retained: boolean, previous: number) => {
-      let i: number;
-      for (i = start; i < comments.length; i++) {
-        const { value, loc: { start: { line } } } = comments[i];
-        const directive = parseDirective(value);
-  
-        if (directive === false) {
-          continue;
-        }
+    comments.forEach((comment) => {
+      const { value, loc } = comment;
+      const directive = parseDirective(value);
 
-        const { key, code } = directive;
-        
-        // If code blocks are retained, we test sub code blocks.
-        if (retained) {
-
-          if (has(directives, key)) {
-            if (!directives[key]) {
-              ranges.push({ start: line, end: line + 1 });
-            }
-          } else if (parent === 'if' && key !== 'endif') {
-            // Skip: elseif、else
-            i = scanDirective(i + 1, key, key === 'if' ? evalDirective(code, symbols) : false, line);
-          }
-
-        } else if (key === 'if') {
-          i = scanDirective(i + 1, null, false, 0); 
-        } else if (parent === 'if') {
-
-          if (key === 'elif' || key === 'elseif') {
-            i = scanDirective(i + 1, 'if', evalDirective(code, symbols), line); 
-          } else if (key === 'else' || key === 'endif') {
-            // Reset status.
-            retained = true;
-          } else {
-            continue;
-          }
-
-          // if - elseif、if - else、if - endif
-          ranges.push({ start: previous, end: line });
-
-        } else if (key === 'endif') {
-
-          // Skip if block
-          if (parent === null) {
-            return i;
-          }
-
-          // if - endif、elseif - endif、else - endif
-          ranges.push({ start: previous, end: line });
-        }
+      if (directive === false) {
+        return;
       }
 
-      return i;
-    };
+      const { key, code } = directive;
+      const { line } = loc!.start;
 
-    scanDirective(0, 'if', true, 0);
+      const previousIndex = tokens.length - 1;
+      const previous = tokens[previousIndex] || { key: '', passed: true, level: 0 };
 
+      switch (key) {
+        case 'if':
+          tokens.push({
+            key,
+            line,
+            passed: previous.passed ? evalDirective(code, symbols) : null,
+            level: previous.level + 1,
+          });
+          break;
+        case 'elif':
+        case 'elseif':
+          // if-elif、if-elseif
+          if (['if', 'elif', 'elseif'].includes(previous.key)) {
+            if (previous.passed) {
+              tokens.push({ key, line, passed: false, level: previous.level });
+            } else if (previous.passed === false) {
+              ranges.push({ start: previous.line, end: line });
+              tokens[previousIndex] = {
+                key,
+                line,
+                passed: evalDirective(code, symbols),
+                level: previous.level,
+              };
+            }
+          }
+          break;
+        case 'else':
+          // if-else、if-elif-else、if-elseif-else
+          if (['if', 'elif', 'elseif'].includes(previous.key)) {
+            if (previous.passed) {
+              tokens[previousIndex] = {
+                key,
+                line,
+                passed: false,
+                level: previous.level,
+              };
+            } else if (previous.passed === false) {
+              ranges.push({ start: previous.line, end: line });
+              tokens[previousIndex] = {
+                key,
+                line,
+                passed: !tokens.some(token => token.passed && token.level === previous.level),
+                level: previous.level,
+              };
+            }
+          }
+          break;
+        case 'endif':
+          if (['if', 'elif', 'elseif', 'else'].includes(previous.key)) {
+            if (previous.passed === false) {
+              ranges.push({ start: previous.line, end: line });
+            }
+            tokens.pop();
+          }
+          break;
+        default:
+          if (previous.passed && has(directives, key) && !directives[key]) {
+            ranges.push({ start: line, end: line + 1 });
+          }
+          break;
+      }
+    });
+  
     return ranges;
   }
 
   function isFalsyPath(path: NodePath, ranges: Range[]) {
     // JSX some node are null
     const { loc } = path.node || {};
-    return loc && ranges.some(r => (loc.start.line >= r.start && loc.end.line <= r.end));
+    return (
+      loc &&
+      ranges.some((r) => loc.start.line >= r.start && loc.end.line <= r.end)
+    );
   }
 
   function isFalsyJSXPath(path: NodePath<JSXElement>, ranges: Range[]) {
-    return isFalsyPath(path.get('openingElement') as NodePath, ranges)
-      || isFalsyPath(path.get('closingElement') as NodePath, ranges);
+    return (
+      isFalsyPath(path.get('openingElement') as NodePath, ranges) ||
+      isFalsyPath(path.get('closingElement') as NodePath, ranges)
+    );
   }
 
   function handleJsxDirective(path: NodePath<JSXElement>, ranges: Range[]) {
-    if (!isFalsyJSXPath(path, ranges)) return;
+    if (!isFalsyJSXPath(path, ranges)) {
+      return;
+    }
 
-    const child = path.get('children').find(
-      child => child.isJSXElement() && !isFalsyPath(child as any, ranges)
-    ) as NodePath;
+    const child = (path.get('children') as NodePath[]).find(
+      (child) => child.isJSXElement() && !isFalsyPath(child as any, ranges)
+    );
 
     if (child) {
       path.replaceWith(child);
@@ -132,13 +172,13 @@ export default function() {
     }
   }
 
-  function transform(path: NodePath<Program>, options: any) {
-    const ranges = getFalsyRanges((path.parent as File).comments, options);
+  function transform(path: NodePath<Program>, options: PluginOptions) {
+    const ranges = getFalsyRanges((path.parent as File).comments!, options);
     path.traverse({
       enter(path) {
         if (path.isJSXElement()) {
-          return handleJsxDirective(path as any, ranges);
-        } 
+          return handleJsxDirective(path as NodePath<JSXElement>, ranges);
+        }
 
         if (isFalsyPath(path, ranges)) {
           path.remove();
@@ -148,27 +188,29 @@ export default function() {
   }
 
   function isDirective(comment: NodePath<Comment>, options: PluginOptions) {
-    let { key } = parseDirective(comment.node.value) || {};
-    return key && (
-      IF.concat('else', 'endif').includes(key) || has(options.directives, key)
+    const { key } = parseDirective(comment.node.value) || {};
+    const { directives = {} } = options;
+
+    return (
+      key &&
+      (['if', 'elif', 'elseif', 'else', 'endif'].includes(key) ||
+        has(directives, key))
     );
   }
 
-  function cleanDirectives(path: NodePath<Program>, options: any) {
+  function cleanDirectives(path: NodePath<Program>, options: PluginOptions) {
     const keys = ['leadingComments', 'innerComments', 'trailingComments'];
     path.traverse({
       enter(path) {
-        for (let key of keys) {
-          let comments = path.get(key) as NodePath[];
-   
-          if (comments && comments.length > 0) {
-            for (let comment of comments) {
-              if (isDirective(comment as NodePath<any>, options)) {
-                comment.remove();
-              } 
-            } 
+        keys.forEach((key) => {
+          const comments = path.get(key);
+
+          if (Array.isArray(comments)) {
+            (comments as unknown as NodePath<Comment>[]).forEach(
+              (comment) => isDirective(comment, options) && comment.remove()
+            );
           }
-        }
+        });
       },
     });
   }
@@ -177,10 +219,10 @@ export default function() {
     name: 'preprocessor',
     visitor: {
       Program: {
-        enter(path, state: any) {
+        enter(path: NodePath<Program>, state) {
           transform(path, state.opts);
         },
-        exit(path, state: any) {
+        exit(path: NodePath<Program>, state) {
           cleanDirectives(path, state.opts);
         },
       },

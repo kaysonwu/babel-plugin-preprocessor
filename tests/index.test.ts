@@ -8,7 +8,7 @@ const testPlugin = (code: string, options: object) => {
     configFile: false,
   });
   
-  return result!.code;
+  return result!.code!;
 }
 
 describe('Babel Preprocessor Plugin', () => {
@@ -21,6 +21,7 @@ describe('Babel Preprocessor Plugin', () => {
       // #endif
     `, { symbols: { IS_BROWSER: true } });
 
+    expect(result).toMatch(/This is browser/);
     expect(result).not.toMatch(/unknown/);
   });
 
@@ -33,6 +34,7 @@ describe('Babel Preprocessor Plugin', () => {
       /* #endif */
     `, { symbols: { IS_BROWSER: true } });
 
+    expect(result).toMatch(/This is browser/);
     expect(result).not.toMatch(/unknown/);
   });
 
@@ -92,6 +94,7 @@ describe('Babel Preprocessor Plugin', () => {
       // #!endif
     `, { symbols: { IS_BROWSER: true } });
 
+    expect(result).toMatch(/This is browser/);
     expect(result).not.toMatch(/unknown/);
   });
 
@@ -104,6 +107,7 @@ describe('Babel Preprocessor Plugin', () => {
       // #endif
     `, { symbols: { IE: 8, UA: 'Chrome' } });
 
+    expect(result).toMatch(/HTML5/);
     expect(result).not.toMatch(/supported/);
   });
 
@@ -139,6 +143,9 @@ describe('Babel Preprocessor Plugin', () => {
         </BrowserRouter>
       );
       
+      // #debug
+      console.debug(container);
+
       // #if SSR
       loadableReady(() => {
         hydrate(element, container);
@@ -154,24 +161,24 @@ describe('Babel Preprocessor Plugin', () => {
       // #endif
     `;
 
-    result = testPlugin(code, { symbols: { target: 'browser', SSR: true } });
+    result = testPlugin(code, { symbols: { target: 'browser', SSR: true }, directives: { debug: true } });
 
-    expect(result).toMatch(/hydrate\(/);
-    expect(result).not.toMatch(/((render|error)\(|export default)/);
+    expect(result).toMatch(/(\.debug|hydrate\()/);
+    expect(result).not.toMatch(/(render\(|export default|\.error)/);
  
-    result = testPlugin(code, { symbols: { target: 'browser', SSR: false } });
-
-    expect(result).not.toMatch(/((hydrate|error)\(|export default)/);
-    expect(result).toMatch(/render\(/);
-
-    result = testPlugin(code, { symbols: { target: 'node', SSR: true } });
+    result = testPlugin(code, { symbols: { target: 'browser', SSR: false }, directives: { debug: false } });
     
-    expect(result).not.toMatch(/(hydrate|render|error)\(/);
-    expect(result).toMatch(/export default/);
+    expect(result).toMatch(/render\(/);
+    expect(result).not.toMatch(/(\.debug|hydrate\(|export default|\.error)/);
 
+    result = testPlugin(code, { symbols: { target: 'node', SSR: true }, directives: { debug: true } });
+    
+    expect(result).toMatch(/export default/);
+    expect(result).not.toMatch(/(getElementById|hydrate\(|render\(|\.error)/);
+ 
     result = testPlugin(code, { symbols: { target: 'unknown', SSR: false } });
 
-    expect(result).not.toMatch(/((hydrate|render)\(|export default)/);
-    expect(result).toMatch(/error\(/);
+    expect(result).toMatch(/\.error/);
+    expect(result).not.toMatch(/(getElementById|hydrate\(|render\(|export default)/);
   });
 });
