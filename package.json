@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-preprocessor",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Used to transform preprocessor directives",
   "keywords": [
     "babel-plugin",
@@ -18,6 +18,7 @@
     "lib"
   ],
   "scripts": {
+    "prepublishOnly": "npm run build",
     "build": "babel src --out-dir lib --extensions \".ts\"",
     "test": "jest"
   },
